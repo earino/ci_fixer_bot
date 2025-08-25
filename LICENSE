@@ -1,0 +1,27 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2025 Eduardo Ariño de la Rubia. All rights reserved.
+
+This software and associated documentation files (the "Software") are proprietary 
+and confidential to Eduardo Ariño de la Rubia ("Owner").
+
+RESTRICTIONS:
+- You may not use, copy, modify, merge, publish, distribute, sublicense, and/or 
+  sell copies of the Software without explicit written permission from the Owner.
+- You may not reverse engineer, decompile, or disassemble the Software.
+- You may not remove or alter any proprietary notices or labels on the Software.
+
+PERMITTED USE:
+- Viewing the source code for evaluation purposes only.
+- Contributing to the project via pull requests (contributions become property 
+  of the Owner upon submission).
+
+NO WARRANTY:
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+OWNER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+For licensing inquiries, contact: earino@gmail.com
