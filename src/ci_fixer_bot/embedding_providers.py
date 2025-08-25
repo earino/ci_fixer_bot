@@ -14,6 +14,29 @@ import numpy as np
 from .config import Config
 
 
+def normalize_embedding(embedding: np.ndarray) -> np.ndarray:
+    """
+    Normalize embedding vector(s) to unit length.
+    
+    Args:
+        embedding: 1D or 2D array of embeddings
+        
+    Returns:
+        Normalized embedding(s) with unit length
+    """
+    if embedding.ndim == 1:
+        norm = np.linalg.norm(embedding)
+        if norm > 0:
+            return embedding / norm
+        return embedding
+    else:
+        # Handle batch of embeddings
+        norms = np.linalg.norm(embedding, axis=1, keepdims=True)
+        # Avoid division by zero
+        norms = np.where(norms > 0, norms, 1)
+        return embedding / norms
+
+
 class EmbeddingProvider(ABC):
     """
     Abstract base class for embedding providers.
@@ -74,10 +97,7 @@ class EmbeddingProvider(ABC):
         Returns:
             Normalized embedding vector
         """
-        norm = np.linalg.norm(embedding)
-        if norm == 0:
-            return embedding
-        return embedding / norm
+        return normalize_embedding(embedding)
     
     def normalize_batch(self, embeddings: np.ndarray) -> np.ndarray:
         """
@@ -89,10 +109,7 @@ class EmbeddingProvider(ABC):
         Returns:
             Normalized embeddings
         """
-        norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
-        # Avoid division by zero
-        norms = np.where(norms == 0, 1, norms)
-        return embeddings / norms
+        return normalize_embedding(embeddings)
 
 
 class EmbeddingError(Exception):
