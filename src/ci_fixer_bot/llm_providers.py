@@ -7,7 +7,7 @@ Supports multiple LLM providers: Claude CLI, OpenAI, local models, custom endpoi
 import json
 import subprocess
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -259,6 +259,10 @@ class CustomCLIProvider(LLMProvider):
 
 class NoLLMProvider(LLMProvider):
     """Fallback provider that uses pattern matching instead of LLM."""
+    
+    def __init__(self, config: Optional[Any] = None):
+        """Initialize the no-LLM provider (config is ignored)."""
+        pass
     
     def analyze(self, prompt: str) -> str:
         """Return basic analysis without LLM."""

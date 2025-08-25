@@ -1,0 +1,41 @@
+# Test configuration for ci_fixer_bot
+# Testing embeddings-based deduplication
+
+# Analyze last 5 CI runs
+analyze_runs: 5
+
+# Focus on all types of issues
+focus: all
+
+# Minimum priority to report
+min_priority: 1
+
+# LLM configuration
+llm:
+  provider: none  # No LLM needed for dry run
+  model: none
+
+# Deduplication with embeddings
+deduplication:
+  enabled: true
+  use_embeddings: true  # Enable semantic deduplication!
+  update_existing: true
+  embedding:
+    provider: mock  # Use mock provider for testing
+    similarity_threshold: 0.85
+    vector_store_type: memory  # Use in-memory store (no dependencies)
+    cache_embeddings: true
+
+# Risk assessment overrides (if needed)
+risk_overrides: []
+
+# Team mappings
+team_mappings: []
+
+# Auto-fix settings
+auto_fix:
+  enabled: false  # Disable auto-fix for safety
+
+# Notifications
+notifications:
+  enabled: false

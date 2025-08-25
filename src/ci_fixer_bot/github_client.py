@@ -159,6 +159,53 @@ class GitHubClient:
         
         return response.json()
     
+    def list_issues(
+        self,
+        owner: str,
+        repo: str,
+        state: str = "open",
+        labels: Optional[List[str]] = None
+    ) -> List[Dict]:
+        """
+        List issues in a repository.
+        
+        Args:
+            owner: Repository owner
+            repo: Repository name
+            state: Issue state (open, closed, all)
+            labels: Optional list of labels to filter by
+            
+        Returns:
+            List of issue objects
+        """
+        url = f"{self.base_url}/repos/{owner}/{repo}/issues"
+        params = {"state": state, "per_page": 100}
+        
+        if labels:
+            params["labels"] = ",".join(labels)
+        
+        issues = []
+        page = 1
+        
+        while True:
+            params["page"] = page
+            response = requests.get(url, headers=self.headers, params=params)
+            response.raise_for_status()
+            
+            batch = response.json()
+            if not batch:
+                break
+                
+            issues.extend(batch)
+            
+            # GitHub returns max 100 per page
+            if len(batch) < 100:
+                break
+                
+            page += 1
+            
+        return issues
+    
     def search_issues(
         self,
         owner: str,
