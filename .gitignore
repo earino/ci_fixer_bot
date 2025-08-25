@@ -119,6 +119,22 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# ML Models - NEVER commit these
+*.bin
+*.onnx
+*.pt
+*.pth
+*.pkl
+*.h5
+*.safetensors
+*.gguf
+*.ggml
+sentence-transformers_*
+models/
+model_cache/
+.cache/
+huggingface/
+
 # Environments
 .env
 .venv
