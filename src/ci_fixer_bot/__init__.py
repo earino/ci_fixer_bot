@@ -9,6 +9,5 @@ __version__ = "0.1.0"
 __author__ = "Eduardo Ariño de la Rubia"
 __email__ = "earino@gmail.com"
 
-from .cli import main
-
-__all__ = ["main"]
+# Don't import cli here to avoid circular imports when running as module
+__all__ = []
