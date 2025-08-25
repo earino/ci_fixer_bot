@@ -30,6 +30,7 @@ dependencies = [
     "rich>=13.0.0",
     "pydantic>=2.0.0",
     "python-dotenv>=1.0.0",
+    "numpy>=1.24.0",
 ]
 
 [project.optional-dependencies]
@@ -49,6 +50,11 @@ test = [
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
     "responses>=0.23.0",
+]
+embeddings = [
+    "sentence-transformers>=2.2.0",  # For local embeddings
+    "faiss-cpu>=1.7.0",              # Vector similarity search
+    "openai>=1.0.0",                 # For OpenAI/LM Studio providers
 ]
 
 [project.scripts]

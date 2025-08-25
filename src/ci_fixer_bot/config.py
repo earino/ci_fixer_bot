@@ -48,9 +48,30 @@ class NotificationConfig(BaseModel):
     enabled: bool = True
 
 
+class EmbeddingConfig(BaseModel):
+    """Configuration for embedding providers."""
+    provider: str = "local"  # local, lm-studio, ollama, openai, mock
+    model: Optional[str] = "all-mpnet-base-v2"  # For local provider
+    similarity_threshold: float = 0.85
+    cache_embeddings: bool = True
+    cache_path: str = ".ci_fixer_bot_cache"
+    embedding_dim: Optional[int] = None  # For mock provider
+    
+    # Provider-specific settings
+    lm_studio_url: str = "http://localhost:1234/v1"
+    ollama_url: str = "http://localhost:11434"
+    ollama_model: str = "nomic-embed-text"
+    openai_api_key: Optional[str] = None
+    openai_model: str = "text-embedding-3-small"
+
+
 class DeduplicationConfig(BaseModel):
     """Configuration for issue deduplication."""
     enabled: bool = True
+    use_embeddings: bool = True  # Use embeddings-based deduplication
+    embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
+    
+    # Legacy settings for backward compatibility
     similarity_threshold: float = 0.8  # Minimum similarity score to consider a duplicate (0.0-1.0)
     exact_match_threshold: float = 0.95  # Threshold for exact matches (0.0-1.0)
     update_existing: bool = True  # Whether to add comments to existing issues when duplicates are found
@@ -121,6 +142,10 @@ def load_config(config_path: Optional[Path] = None) -> Config:
         "llm.api_key": os.getenv("OPENAI_API_KEY") or os.getenv("CLAUDE_API_KEY"),
         "notifications.slack_webhook": os.getenv("SLACK_WEBHOOK_URL"),
         "notifications.email": os.getenv("NOTIFICATION_EMAIL"),
+        "deduplication.embedding.provider": os.getenv("EMBEDDING_PROVIDER"),
+        "deduplication.embedding.openai_api_key": os.getenv("OPENAI_API_KEY"),
+        "deduplication.embedding.lm_studio_url": os.getenv("LM_STUDIO_URL"),
+        "deduplication.embedding.ollama_url": os.getenv("OLLAMA_URL"),
     }
     
     # Apply environment overrides
