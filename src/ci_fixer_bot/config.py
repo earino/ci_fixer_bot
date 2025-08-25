@@ -52,10 +52,14 @@ class EmbeddingConfig(BaseModel):
     """Configuration for embedding providers."""
     provider: str = "local"  # local, lm-studio, ollama, openai, mock
     model: Optional[str] = "all-mpnet-base-v2"  # For local provider
-    similarity_threshold: float = 0.85
+    similarity_threshold: float = 0.80  # Optimal range: 0.80-0.85 based on analysis
     cache_embeddings: bool = True
     cache_path: str = ".ci_fixer_bot_cache"
     embedding_dim: Optional[int] = None  # For mock provider
+    
+    # Auto-calibration settings
+    auto_calibrate: bool = False  # Auto-calibrate threshold from existing issues
+    calibration_strategy: str = "balanced"  # conservative, balanced, aggressive
     
     # Vector store configuration
     vector_store_type: str = "memory"  # memory (default) or faiss (special cases only)

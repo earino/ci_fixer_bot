@@ -249,6 +249,27 @@ class CIFixerBot:
             # Use new embedding-based deduplicator
             from .embedding_deduplicator import create_embedding_deduplicator
             
+            # Auto-calibrate threshold if requested
+            if self.config.deduplication.embedding.auto_calibrate:
+                from .auto_calibrate import auto_calibrate_threshold
+                
+                if self.verbose:
+                    console.print("🎯 Auto-calibrating similarity threshold...")
+                
+                calibrated_threshold = auto_calibrate_threshold(
+                    config=self.config,
+                    github_client=self.github_client,
+                    owner=owner,
+                    repo=repo,
+                    strategy=self.config.deduplication.embedding.calibration_strategy
+                )
+                
+                if self.verbose:
+                    console.print(f"   Using calibrated threshold: {calibrated_threshold:.2f}")
+                
+                # Update config with calibrated threshold
+                self.config.deduplication.embedding.similarity_threshold = calibrated_threshold
+            
             deduplicator = create_embedding_deduplicator(
                 config=self.config,
                 github_client=self.github_client

@@ -63,6 +63,17 @@ console = Console()
     help="Vector store type (memory=default, faiss=special cases with millions of issues)"
 )
 @click.option(
+    "--auto-calibrate",
+    is_flag=True,
+    help="Auto-calibrate similarity threshold based on existing issues"
+)
+@click.option(
+    "--calibration-strategy",
+    type=click.Choice(["conservative", "balanced", "aggressive"], case_sensitive=False),
+    default="balanced",
+    help="Strategy for auto-calibration (conservative=high precision, balanced=best F1, aggressive=high recall)"
+)
+@click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, path_type=Path),
@@ -91,6 +102,8 @@ def main(
     llm_model: Optional[str],
     llm_endpoint: Optional[str],
     vector_store_type: str,
+    auto_calibrate: bool,
+    calibration_strategy: str,
     config_path: Optional[Path],
     verbose: bool,
     json_output: bool,
@@ -126,9 +139,16 @@ def main(
         if llm_endpoint:
             config.llm.endpoint = llm_endpoint
         
+        # Set auto-calibration options
+        if auto_calibrate:
+            config.deduplication.embedding.auto_calibrate = True
+            config.deduplication.embedding.calibration_strategy = calibration_strategy
+        
         if verbose:
             console.print(f"🤖 [bold blue]ci_fixer_bot[/] analyzing {repository_url}")
             console.print(f"📋 Configuration: {focus} issues, {analyze_runs} runs, LLM: {config.llm.provider}")
+            if auto_calibrate:
+                console.print(f"🎯 Auto-calibrating threshold with {calibration_strategy} strategy")
         
         # Initialize the bot
         bot = CIFixerBot(config=config, verbose=verbose)
