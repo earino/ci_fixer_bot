@@ -257,7 +257,7 @@ class CIFixerBot:
             # Index existing issues
             if self.verbose:
                 console.print("🔍 Indexing existing issues for semantic deduplication...")
-            deduplicator.index_existing_issues(owner, repo, labels=["ci-failure", "bug"])
+            deduplicator.index_existing_issues(owner, repo, labels=["ci-fix"])
         else:
             # Use old regex-based deduplicator for backward compatibility
             from .deduplication import IssueDeduplicator

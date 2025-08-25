@@ -22,8 +22,9 @@ deduplication:
   use_embeddings: true  # Enable semantic deduplication!
   update_existing: true
   embedding:
-    provider: mock  # Use mock provider for testing
-    similarity_threshold: 0.85
+    provider: local  # Use real local embeddings for actual semantic similarity!
+    model: sentence-transformers/all-mpnet-base-v2
+    similarity_threshold: 0.75  # Lowered from 0.85 - even exact titles only score ~0.80
     vector_store_type: memory  # Use in-memory store (no dependencies)
     cache_embeddings: true
 
