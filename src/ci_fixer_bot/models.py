@@ -4,7 +4,7 @@ Data models for ci_fixer_bot.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -94,3 +94,12 @@ class RiskAssessment:
     confidence: float  # 0.0 - 1.0, how confident we are in this assessment
     
     reasoning: str = ""  # Why this risk level was assigned
+
+
+@dataclass
+class DuplicationResult:
+    """Result of checking if an issue is a duplicate."""
+    is_duplicate: bool
+    similar_issues: List[Any]  # List of SimilarIssue objects
+    best_match: Optional[Any] = None  # Best matching SimilarIssue
+    confidence: float = 0.0  # Confidence score (0.0-1.0)
