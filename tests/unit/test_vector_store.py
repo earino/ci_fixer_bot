@@ -420,6 +420,13 @@ class TestVectorStoreFactory:
         assert isinstance(store, InMemoryVectorStore)
         assert store.dimension == 768
     
+    def test_default_is_memory_store(self):
+        """Test that default store type is memory."""
+        store = create_vector_store()  # No type specified
+        
+        assert isinstance(store, InMemoryVectorStore)
+        assert store.dimension == 768  # Default dimension
+    
     def test_create_faiss_store(self):
         """Test creating FAISS store."""
         mock_faiss = MagicMock()

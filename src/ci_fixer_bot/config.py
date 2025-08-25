@@ -57,6 +57,10 @@ class EmbeddingConfig(BaseModel):
     cache_path: str = ".ci_fixer_bot_cache"
     embedding_dim: Optional[int] = None  # For mock provider
     
+    # Vector store configuration
+    vector_store_type: str = "memory"  # memory (default) or faiss (special cases only)
+    vector_store_path: str = ".ci_fixer_bot_vectors"  # Where to persist vector store
+    
     # Provider-specific settings
     lm_studio_url: str = "http://localhost:1234/v1"
     ollama_url: str = "http://localhost:11434"

@@ -141,6 +141,15 @@ class FAISSVectorStore(VectorStore):
     
     FAISS (Facebook AI Similarity Search) provides highly optimized
     algorithms for similarity search in high-dimensional spaces.
+    
+    WARNING: This is overkill for typical ci_fixer_bot usage!
+    Only use FAISS if you have:
+    - Millions of issues to search through
+    - Need to build a persistent vector database for research
+    - Want to analyze issues across many repositories
+    - Need GPU acceleration for massive datasets
+    
+    For normal usage (< 10,000 issues), use InMemoryVectorStore instead.
     """
     
     def __init__(
@@ -456,27 +465,47 @@ class InMemoryVectorStore(VectorStore):
 
 
 def create_vector_store(
-    store_type: str,
-    dimension: int,
+    store_type: str = "memory",
+    dimension: int = 768,
     **kwargs
 ) -> VectorStore:
     """
     Factory function to create vector stores.
     
     Args:
-        store_type: Type of store ('faiss', 'memory')
-        dimension: Dimension of vectors
-        **kwargs: Additional arguments for the store
+        store_type: Type of store ('memory' or 'faiss'). Default is 'memory' which
+                   works everywhere with no dependencies. Use 'faiss' only for 
+                   special cases like:
+                   - Analyzing millions of historical issues
+                   - Building a persistent vector database for research
+                   - Running similarity analysis across multiple repositories
+        dimension: Dimension of vectors (default 768 for all-mpnet-base-v2)
+        **kwargs: Additional arguments for the store (only used for FAISS)
         
     Returns:
         VectorStore instance
         
     Raises:
         ValueError: If store type is unknown
+        
+    Note:
+        For typical ci_fixer_bot usage (< 10,000 issues), InMemoryVectorStore
+        is recommended. It's faster to initialize, has no dependencies, and
+        performs identically for small-to-medium datasets.
     """
-    if store_type == "faiss":
-        return FAISSVectorStore(dimension, **kwargs)
-    elif store_type == "memory":
+    if store_type == "memory":
         return InMemoryVectorStore(dimension)
+    elif store_type == "faiss":
+        try:
+            return FAISSVectorStore(dimension, **kwargs)
+        except ImportError as e:
+            raise ImportError(
+                "FAISS is not installed. For most use cases, the default 'memory' "
+                "store is sufficient. If you specifically need FAISS for large-scale "
+                "operations, install it with: pip install faiss-cpu"
+            ) from e
     else:
-        raise ValueError(f"Unknown vector store type: {store_type}")
+        raise ValueError(
+            f"Unknown vector store type: {store_type}. "
+            f"Use 'memory' (default) or 'faiss' (for special cases)"
+        )

@@ -184,3 +184,15 @@ config/local.yml
 knowledge.json
 temp_repos/
 *.log
+
+# Vector stores and embedding caches - NEVER commit these
+.ci_fixer_bot_cache/
+.ci_fixer_bot_vectors/
+*.faiss
+*.index
+*.pkl
+*.npz
+*_embeddings.json
+*_vectors.db
+vector_store/
+embeddings_cache/

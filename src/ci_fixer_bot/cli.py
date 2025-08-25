@@ -57,6 +57,12 @@ console = Console()
     help="Custom endpoint URL for LLM provider"
 )
 @click.option(
+    "--vector-store-type",
+    type=click.Choice(["memory", "faiss"], case_sensitive=False),
+    default="memory",
+    help="Vector store type (memory=default, faiss=special cases with millions of issues)"
+)
+@click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, path_type=Path),
@@ -84,6 +90,7 @@ def main(
     llm_provider: Optional[str],
     llm_model: Optional[str],
     llm_endpoint: Optional[str],
+    vector_store_type: str,
     config_path: Optional[Path],
     verbose: bool,
     json_output: bool,
