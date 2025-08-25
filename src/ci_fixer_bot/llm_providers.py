@@ -121,14 +121,20 @@ class OllamaProvider(LLMProvider):
         self.endpoint = config.endpoint or "http://localhost:11434"
     
     def analyze(self, prompt: str) -> str:
-        """Analyze using Ollama API."""
+        """Analyze using Ollama API with streaming progress."""
+        import json
+        from rich.console import Console
+        from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
+        
+        console = Console()
+        
         payload = {
             "model": self.model,
             "prompt": prompt,
-            "stream": False,
+            "stream": True,  # Enable streaming!
             "options": {
                 "temperature": self.config.temperature,
-                "num_predict": self.config.max_tokens
+                "num_predict": self.config.max_tokens or 2000  # Estimate for progress bar
             }
         }
         
@@ -136,17 +142,70 @@ class OllamaProvider(LLMProvider):
             response = requests.post(
                 f"{self.endpoint}/api/generate",
                 json=payload,
-                timeout=120  # Local models can be slower
+                stream=True,  # Stream the response
+                timeout=300  # Longer timeout for streaming
             )
             response.raise_for_status()
             
-            data = response.json()
-            return data["response"].strip()
+            full_response = ""
+            estimated_tokens = self.config.max_tokens or 2000
+            
+            with Progress(
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                TimeElapsedColumn(),
+                console=console,
+                transient=False  # Keep visible during generation
+            ) as progress:
+                task = progress.add_task(
+                    f"🤖 {self.model} generating...",
+                    total=estimated_tokens
+                )
+                
+                tokens_received = 0
+                
+                # Process each line of the stream
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            # Parse the JSON response
+                            data = json.loads(line.decode('utf-8'))
+                            
+                            # Add the response chunk to our full response
+                            if 'response' in data:
+                                chunk = data['response']
+                                full_response += chunk
+                                
+                                # Estimate tokens (rough approximation: 4 chars = 1 token)
+                                tokens_received += max(1, len(chunk) // 4)
+                                
+                                # Update progress - cap at 100%
+                                progress.update(
+                                    task, 
+                                    completed=min(tokens_received, estimated_tokens),
+                                    description=f"🤖 {self.model} ({len(full_response)} chars)"
+                                )
+                            
+                            # Check if generation is done
+                            if data.get('done', False):
+                                progress.update(
+                                    task,
+                                    completed=estimated_tokens,
+                                    description=f"✅ {self.model} complete"
+                                )
+                                break
+                                
+                        except json.JSONDecodeError:
+                            # Skip malformed JSON lines
+                            continue
+            
+            return full_response.strip()
             
         except requests.RequestException as e:
             raise RuntimeError(f"Ollama API request failed: {e}")
-        except KeyError as e:
-            raise RuntimeError(f"Unexpected Ollama API response format: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Streaming analysis failed: {e}")
     
     def is_available(self) -> bool:
         """Check if Ollama is running."""

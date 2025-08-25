@@ -10,10 +10,11 @@ focus: all
 # Minimum priority to report
 min_priority: 1
 
-# LLM configuration
+# LLM configuration  
 llm:
-  provider: none  # No LLM needed for dry run
-  model: none
+  provider: ollama  
+  model: llama3.2:latest  # Smaller, faster model for testing
+  endpoint: http://localhost:11434
 
 # Deduplication with embeddings
 deduplication:
