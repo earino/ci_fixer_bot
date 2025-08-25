@@ -244,12 +244,29 @@ class CIFixerBot:
                     issue.issue_number = github_issue["number"]
             return issues
         
-        # Initialize deduplicator
-        deduplicator = IssueDeduplicator(
-            github_client=self.github_client,
-            similarity_threshold=self.config.deduplication.similarity_threshold,
-            exact_match_threshold=self.config.deduplication.exact_match_threshold
-        )
+        # Choose deduplicator based on config
+        if self.config.deduplication.use_embeddings:
+            # Use new embedding-based deduplicator
+            from .embedding_deduplicator import create_embedding_deduplicator
+            
+            deduplicator = create_embedding_deduplicator(
+                config=self.config,
+                github_client=self.github_client
+            )
+            
+            # Index existing issues
+            if self.verbose:
+                console.print("🔍 Indexing existing issues for semantic deduplication...")
+            deduplicator.index_existing_issues(owner, repo, labels=["ci-failure", "bug"])
+        else:
+            # Use old regex-based deduplicator for backward compatibility
+            from .deduplication import IssueDeduplicator
+            
+            deduplicator = IssueDeduplicator(
+                github_client=self.github_client,
+                similarity_threshold=self.config.deduplication.similarity_threshold,
+                exact_match_threshold=self.config.deduplication.exact_match_threshold
+            )
         
         # Get analyzer to access failure contexts
         analyzer = self._get_current_analyzer()
@@ -262,18 +279,40 @@ class CIFixerBot:
                 # Get failure context for this issue
                 failure_context = analyzer.get_failure_context(issue) if analyzer else {}
                 
-                # Check for duplicates
-                dup_result = deduplicator.check_for_duplicate(owner, repo, issue, failure_context)
+                # Check for duplicates based on deduplicator type
+                if self.config.deduplication.use_embeddings:
+                    # New embedding deduplicator
+                    dup_result = deduplicator.check_duplicate(issue, failure_context)
+                else:
+                    # Old regex deduplicator
+                    dup_result = deduplicator.check_for_duplicate(owner, repo, issue, failure_context)
                 
                 if dup_result.is_duplicate:
                     if self.verbose:
                         console.print(f"⚠️  Skipping duplicate issue: {issue.title}")
-                        console.print(f"   Similar to: {dup_result.existing_issue.get('title', 'Unknown')}")
-                        console.print(f"   Similarity: {dup_result.similarity_score:.2f}")
+                        if self.config.deduplication.use_embeddings:
+                            # New deduplicator uses best_match
+                            if dup_result.best_match:
+                                console.print(f"   Similar to: {dup_result.best_match.title}")
+                                console.print(f"   Similarity: {dup_result.confidence:.2%}")
+                        else:
+                            # Old deduplicator uses existing_issue
+                            console.print(f"   Similar to: {dup_result.existing_issue.get('title', 'Unknown')}")
+                            console.print(f"   Similarity: {dup_result.similarity_score:.2f}")
                     
                     # Optionally add a comment to the existing issue
                     if self.config.deduplication.update_existing and not dry_run:
-                        self._update_existing_issue(owner, repo, dup_result.existing_issue, issue)
+                        if self.config.deduplication.use_embeddings:
+                            # Convert best_match to dict format for update
+                            if dup_result.best_match:
+                                existing_issue = {
+                                    "number": dup_result.best_match.issue_number,
+                                    "title": dup_result.best_match.title,
+                                    "html_url": dup_result.best_match.url
+                                }
+                                self._update_existing_issue(owner, repo, existing_issue, issue)
+                        else:
+                            self._update_existing_issue(owner, repo, dup_result.existing_issue, issue)
                     
                     skipped_count += 1
                     continue
