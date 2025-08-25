@@ -120,7 +120,7 @@ class OllamaProvider(LLMProvider):
         self.model = config.model or "codellama"
         self.endpoint = config.endpoint or "http://localhost:11434"
     
-    def analyze(self, prompt: str) -> str:
+    def analyze(self, prompt: str, context: str = None) -> str:
         """Analyze using Ollama API with streaming progress."""
         import json
         from rich.console import Console
@@ -158,8 +158,15 @@ class OllamaProvider(LLMProvider):
                 console=console,
                 transient=False  # Keep visible during generation
             ) as progress:
+                # Create a descriptive task name
+                task_name = f"🤖 {self.model}"
+                if context:
+                    task_name += f" analyzing {context}"
+                else:
+                    task_name += " generating"
+                
                 task = progress.add_task(
-                    f"🤖 {self.model} generating...",
+                    task_name + "...",
                     total=estimated_tokens
                 )
                 
@@ -181,18 +188,28 @@ class OllamaProvider(LLMProvider):
                                 tokens_received += max(1, len(chunk) // 4)
                                 
                                 # Update progress - cap at 100%
+                                desc = f"🤖 {self.model}"
+                                if context:
+                                    desc += f" analyzing {context}"
+                                desc += f" ({len(full_response)} chars)"
+                                
                                 progress.update(
                                     task, 
                                     completed=min(tokens_received, estimated_tokens),
-                                    description=f"🤖 {self.model} ({len(full_response)} chars)"
+                                    description=desc
                                 )
                             
                             # Check if generation is done
                             if data.get('done', False):
+                                final_desc = f"✅ {self.model}"
+                                if context:
+                                    final_desc += f" {context}"
+                                final_desc += " complete"
+                                
                                 progress.update(
                                     task,
                                     completed=estimated_tokens,
-                                    description=f"✅ {self.model} complete"
+                                    description=final_desc
                                 )
                                 break
                                 

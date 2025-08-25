@@ -187,8 +187,8 @@ class FailureAnalyzer:
                 # Prepare context for LLM
                 context = self._build_analysis_context(group_failures)
                 
-                # Generate issue using LLM
-                issue = self._generate_single_issue(context, group_failures)
+                # Generate issue using LLM with context info
+                issue = self._generate_single_issue(context, group_failures, group_key)
                 
                 if issue:
                     # Store failure context for deduplication
@@ -239,7 +239,7 @@ class FailureAnalyzer:
         
         return "\n\n".join(context_parts)
     
-    def _generate_single_issue(self, context: str, failures: List[CIFailure]) -> Optional[Issue]:
+    def _generate_single_issue(self, context: str, failures: List[CIFailure], group_key: str = None) -> Optional[Issue]:
         """Generate a single issue using LLM."""
         
         prompt = f"""
@@ -271,7 +271,9 @@ Focus on being specific and actionable. Senior engineers want to know exactly wh
 """
         
         try:
-            llm_response = self.llm_provider.analyze(prompt)
+            # Create a descriptive context for the progress bar
+            context_desc = f"{group_key or 'CI failure'} ({len(failures)} runs)"
+            llm_response = self.llm_provider.analyze(prompt, context=context_desc)
             
             # Extract JSON from response
             json_match = re.search(r'\{.*\}', llm_response, re.DOTALL)
