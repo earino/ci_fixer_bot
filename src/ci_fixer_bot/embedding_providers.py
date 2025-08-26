@@ -194,44 +194,27 @@ def create_embedding_provider(config: Config) -> EmbeddingProvider:
     
     elif provider_type == "lm-studio":
         # Import here to avoid dependency if not using LM Studio
-        try:
-            from .embedding_providers_lmstudio import LMStudioEmbeddingProvider
-            return LMStudioEmbeddingProvider(
-                base_url=config.deduplication.embedding.lm_studio_url
-            )
-        except ImportError as e:
-            raise ValueError(
-                "LM Studio provider requires openai package. "
-                "Install with: pip install openai"
-            ) from e
+        from .embedding_providers_lmstudio import LMStudioEmbeddingProvider
+        return LMStudioEmbeddingProvider(
+            url=config.deduplication.embedding.lm_studio_url,
+            model=config.deduplication.embedding.model
+        )
     
     elif provider_type == "ollama":
         # Import here to avoid dependency if not using Ollama
-        try:
-            from .embedding_providers_ollama import OllamaEmbeddingProvider
-            return OllamaEmbeddingProvider(
-                model=config.deduplication.embedding.ollama_model,
-                base_url=config.deduplication.embedding.ollama_url
-            )
-        except ImportError as e:
-            raise ValueError(
-                "Ollama provider requires requests package. "
-                "Install with: pip install requests"
-            ) from e
+        from .embedding_providers_ollama import OllamaEmbeddingProvider
+        return OllamaEmbeddingProvider(
+            url=config.deduplication.embedding.ollama_url,
+            model=config.deduplication.embedding.ollama_model
+        )
     
     elif provider_type == "openai":
         # Import here to avoid dependency if not using OpenAI
-        try:
-            from .embedding_providers_openai import OpenAIEmbeddingProvider
-            return OpenAIEmbeddingProvider(
-                api_key=config.deduplication.embedding.openai_api_key,
-                model=config.deduplication.embedding.openai_model
-            )
-        except ImportError as e:
-            raise ValueError(
-                "OpenAI provider requires openai package. "
-                "Install with: pip install openai"
-            ) from e
+        from .embedding_providers_openai import OpenAIEmbeddingProvider
+        return OpenAIEmbeddingProvider(
+            api_key=config.deduplication.embedding.openai_api_key,
+            model=config.deduplication.embedding.openai_model
+        )
     
     else:
         raise ValueError(
